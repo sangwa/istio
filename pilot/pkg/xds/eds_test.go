@@ -831,10 +831,6 @@ func testLocalityPrioritizedEndpoints(adsc *adsc.ADSC, adsc2 *adsc.ADSC, t *test
 
 	verifyLocalityPriorities(asdcLocality, endpoints1["outbound|80||locality.cluster.local"].GetEndpoints(), t)
 	verifyLocalityPriorities(asdc2Locality, endpoints2["outbound|80||locality.cluster.local"].GetEndpoints(), t)
-
-	// No outlier detection specified for this cluster, so we shouldn't apply priority.
-	verifyNoLocalityPriorities(endpoints1["outbound|80||locality-no-outlier-detection.cluster.local"].GetEndpoints(), t)
-	verifyNoLocalityPriorities(endpoints2["outbound|80||locality-no-outlier-detection.cluster.local"].GetEndpoints(), t)
 }
 
 // Tests that Services with multiple ports sharing the same port number are properly sent endpoints.
@@ -854,14 +850,6 @@ func testOverlappingPorts(s *xds.FakeDiscoveryServer, adsc *adsc.ADSC, t *testin
 
 	// After the incremental push, we should still see the endpoint
 	testEndpoints("10.0.0.53", "outbound|53||overlapping.cluster.local", adsc, t)
-}
-
-func verifyNoLocalityPriorities(eps []*endpoint.LocalityLbEndpoints, t *testing.T) {
-	for _, ep := range eps {
-		if ep.GetPriority() != 0 {
-			t.Errorf("expected no locality priorities to apply, got priority %v.", ep.GetPriority())
-		}
-	}
 }
 
 func verifyLocalityPriorities(proxyLocality string, eps []*endpoint.LocalityLbEndpoints, t *testing.T) {
