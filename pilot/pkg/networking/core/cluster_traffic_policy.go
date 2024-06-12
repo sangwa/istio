@@ -284,11 +284,11 @@ func applyLoadBalancer(c *cluster.Cluster, lb *networking.LoadBalancerSettings, 
 func applyLocalityLoadBalancer(locality *core.Locality, proxyLabels map[string]string, cluster *cluster.Cluster,
 	localityLB *networking.LocalityLoadBalancerSetting,
 ) {
-	// Failover should only be applied with outlier detection, or traffic will never failover.
-	enableFailover := cluster.OutlierDetection != nil
+	// Failover should only be applied with outlier detection or SendUnhealthyEndpoints, or traffic will never failover.
+	outlierDetectionEnabled := cluster.OutlierDetection != nil
 	if cluster.LoadAssignment != nil {
 		// TODO: enable failoverPriority for `STRICT_DNS` cluster type
-		loadbalancer.ApplyLocalityLoadBalancer(cluster.LoadAssignment, nil, locality, proxyLabels, localityLB, enableFailover)
+		loadbalancer.ApplyLocalityLoadBalancer(cluster.LoadAssignment, nil, locality, proxyLabels, localityLB, outlierDetectionEnabled)
 	}
 }
 

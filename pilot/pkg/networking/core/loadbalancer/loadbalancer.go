@@ -25,6 +25,7 @@ import (
 	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 
 	"istio.io/api/networking/v1alpha3"
+	"istio.io/istio/pilot/pkg/features"
 	"istio.io/istio/pilot/pkg/model"
 	"istio.io/istio/pilot/pkg/networking/util"
 	"istio.io/istio/pkg/util/sets"
@@ -69,11 +70,13 @@ func ApplyLocalityLoadBalancer(
 	locality *core.Locality,
 	proxyLabels map[string]string,
 	localityLB *v1alpha3.LocalityLoadBalancerSetting,
-	enableFailover bool,
+	outlierDetectionEnabled bool,
 ) {
 	if localityLB == nil || loadAssignment == nil {
 		return
 	}
+
+	enableFailover := outlierDetectionEnabled || features.SendUnhealthyEndpoints.Load()
 
 	// one of Distribute or Failover settings can be applied.
 	if localityLB.GetDistribute() != nil {
