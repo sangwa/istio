@@ -1299,6 +1299,14 @@ func TestDuplicateClusters(t *testing.T) {
 }
 
 func TestSidecarLocalityLB(t *testing.T) {
+	sendUnhealthyEndpoints := features.SendUnhealthyEndpoints.Load()
+	testSidecarLocalityLB(t, sendUnhealthyEndpoints)
+	testSidecarLocalityLB(t, !sendUnhealthyEndpoints)
+}
+
+func testSidecarLocalityLB(t *testing.T, sendUnhealthyEndpoints bool) {
+	test.SetAtomicBoolForTest(t, features.SendUnhealthyEndpoints, sendUnhealthyEndpoints)
+
 	g := NewWithT(t)
 	// Distribute locality loadbalancing setting
 	mesh := testMesh()
@@ -1335,7 +1343,12 @@ func TestSidecarLocalityLB(t *testing.T) {
 	if c.CommonLbConfig == nil {
 		t.Fatalf("CommonLbConfig should be set for cluster %+v", c)
 	}
-	g.Expect(c.CommonLbConfig.HealthyPanicThreshold.GetValue()).To(Equal(float64(10)))
+
+	expectedPanicThreshold := float64(10)
+	if sendUnhealthyEndpoints {
+		expectedPanicThreshold = 0
+	}
+	g.Expect(c.CommonLbConfig.HealthyPanicThreshold.GetValue()).To(Equal(expectedPanicThreshold))
 
 	g.Expect(len(c.LoadAssignment.Endpoints)).To(Equal(3))
 	for _, localityLbEndpoint := range c.LoadAssignment.Endpoints {
@@ -1378,7 +1391,7 @@ func TestSidecarLocalityLB(t *testing.T) {
 	if c.CommonLbConfig == nil {
 		t.Fatalf("CommonLbConfig should be set for cluster %+v", c)
 	}
-	g.Expect(c.CommonLbConfig.HealthyPanicThreshold.GetValue()).To(Equal(float64(10)))
+	g.Expect(c.CommonLbConfig.HealthyPanicThreshold.GetValue()).To(Equal(expectedPanicThreshold))
 
 	g.Expect(len(c.LoadAssignment.Endpoints)).To(Equal(3))
 	for _, localityLbEndpoint := range c.LoadAssignment.Endpoints {
@@ -1394,6 +1407,14 @@ func TestSidecarLocalityLB(t *testing.T) {
 }
 
 func TestLocalityLBDestinationRuleOverride(t *testing.T) {
+	sendUnhealthyEndpoints := features.SendUnhealthyEndpoints.Load()
+	testLocalityLBDestinationRuleOverride(t, sendUnhealthyEndpoints)
+	testLocalityLBDestinationRuleOverride(t, !sendUnhealthyEndpoints)
+}
+
+func testLocalityLBDestinationRuleOverride(t *testing.T, sendUnhealthyEndpoints bool) {
+	test.SetAtomicBoolForTest(t, features.SendUnhealthyEndpoints, sendUnhealthyEndpoints)
+
 	g := NewWithT(t)
 	mesh := testMesh()
 	// Distribute locality loadbalancing setting
@@ -1441,7 +1462,12 @@ func TestLocalityLBDestinationRuleOverride(t *testing.T) {
 	if c.CommonLbConfig == nil {
 		t.Fatalf("CommonLbConfig should be set for cluster %+v", c)
 	}
-	g.Expect(c.CommonLbConfig.HealthyPanicThreshold.GetValue()).To(Equal(float64(10)))
+
+	expectedPanicThreshold := float64(10)
+	if sendUnhealthyEndpoints {
+		expectedPanicThreshold = 0
+	}
+	g.Expect(c.CommonLbConfig.HealthyPanicThreshold.GetValue()).To(Equal(expectedPanicThreshold))
 
 	g.Expect(len(c.LoadAssignment.Endpoints)).To(Equal(3))
 	for _, localityLbEndpoint := range c.LoadAssignment.Endpoints {
@@ -1461,6 +1487,14 @@ func TestLocalityLBDestinationRuleOverride(t *testing.T) {
 }
 
 func TestGatewayLocalityLB(t *testing.T) {
+	sendUnhealthyEndpoints := features.SendUnhealthyEndpoints.Load()
+	testGatewayLocalityLB(t, sendUnhealthyEndpoints)
+	testGatewayLocalityLB(t, !sendUnhealthyEndpoints)
+}
+
+func testGatewayLocalityLB(t *testing.T, sendUnhealthyEndpoints bool) {
+	test.SetAtomicBoolForTest(t, features.SendUnhealthyEndpoints, sendUnhealthyEndpoints)
+
 	g := NewWithT(t)
 
 	// Test distribute
@@ -1502,7 +1536,13 @@ func TestGatewayLocalityLB(t *testing.T) {
 	if c.CommonLbConfig == nil {
 		t.Errorf("CommonLbConfig should be set for cluster %+v", c)
 	}
-	g.Expect(c.CommonLbConfig.HealthyPanicThreshold.GetValue()).To(Equal(float64(10)))
+
+	expectedPanicThreshold := float64(10)
+	if sendUnhealthyEndpoints {
+		expectedPanicThreshold = 0
+	}
+	g.Expect(c.CommonLbConfig.HealthyPanicThreshold.GetValue()).To(Equal(expectedPanicThreshold))
+
 	g.Expect(len(c.LoadAssignment.Endpoints)).To(Equal(3))
 	for _, localityLbEndpoint := range c.LoadAssignment.Endpoints {
 		locality := localityLbEndpoint.Locality
@@ -1545,7 +1585,7 @@ func TestGatewayLocalityLB(t *testing.T) {
 	if c.CommonLbConfig == nil {
 		t.Fatalf("CommonLbConfig should be set for cluster %+v", c)
 	}
-	g.Expect(c.CommonLbConfig.HealthyPanicThreshold.GetValue()).To(Equal(float64(10)))
+	g.Expect(c.CommonLbConfig.HealthyPanicThreshold.GetValue()).To(Equal(expectedPanicThreshold))
 
 	g.Expect(len(c.LoadAssignment.Endpoints)).To(Equal(3))
 	for _, localityLbEndpoint := range c.LoadAssignment.Endpoints {
