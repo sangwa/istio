@@ -56,10 +56,10 @@ func FuzzApplyLocalityLBSetting(f *testing.F) {
 			return
 		}
 
-		enableFailover, err := ff.GetBool()
+		outlierDetectionEnabled, err := ff.GetBool()
 		if err != nil {
 			return
 		}
-		ApplyLocalityLoadBalancer(loadAssignment, wrappedLocalityLbEndpoints, locality, proxyLabels, localityLB, enableFailover)
+		ApplyLocalityLoadBalancer(loadAssignment, wrappedLocalityLbEndpoints, locality, proxyLabels, localityLB, outlierDetectionEnabled)
 	})
 }

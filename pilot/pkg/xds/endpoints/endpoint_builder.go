@@ -371,10 +371,9 @@ func (b *EndpointBuilder) BuildClusterLoadAssignment(endpointIndex *model.Endpoi
 
 	l := b.createClusterLoadAssignment(localityLbEndpoints)
 
-	// If locality aware routing is enabled, prioritize endpoints or set their lb weight.
-	// Failover should only be enabled when there is an outlier detection, otherwise Envoy
-	// will never detect the hosts are unhealthy and redirect traffic.
-	enableFailover, lb := getOutlierDetectionAndLoadBalancerSettings(b.DestinationRule(), b.port, b.subsetName)
+	// Failover should only be enabled when there is an outlier detection, or when SendUnhealthyEndpoints
+	// feature is enabled, otherwise Envoy will never detect the hosts are unhealthy and redirect traffic.
+	outlierDetectionEnabled, lb := getOutlierDetectionAndLoadBalancerSettings(b.DestinationRule(), b.port, b.subsetName)
 	lbSetting := loadbalancer.GetLocalityLbSetting(b.push.Mesh.GetLocalityLbSetting(), lb.GetLocalityLbSetting())
 	if lbSetting != nil {
 		// Make a shallow copy of the cla as we are mutating the endpoints with priorities/weights relative to the calling proxy
@@ -386,7 +385,7 @@ func (b *EndpointBuilder) BuildClusterLoadAssignment(endpointIndex *model.Endpoi
 				LocalityLbEndpoints: l.Endpoints[i],
 			}
 		}
-		loadbalancer.ApplyLocalityLoadBalancer(l, wrappedLocalityLbEndpoints, b.locality, b.proxy.Labels, lbSetting, enableFailover)
+		loadbalancer.ApplyLocalityLoadBalancer(l, wrappedLocalityLbEndpoints, b.locality, b.proxy.Labels, lbSetting, outlierDetectionEnabled)
 	}
 	return l
 }
